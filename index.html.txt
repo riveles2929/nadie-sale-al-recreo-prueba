@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nadie sale al recreo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    display: ['"Bebas Neue"', 'cursive'],
+                    body: ['"Space Grotesk"', 'sans-serif'],
+                },
+            }
+        }
+    }
+    </script>
+    <style>
+        :root {
+            --bg: #110600;
+            --bg-card: #1E0E02;
+            --bg-card-hover: #2C1605;
+            --accent: #E63946;
+            --accent-light: #FF6B35;
+            --warm: #F4A261;
+            --gold: #FFC145;
+            --text: #FDE8D0;
+            --text-muted: #9C7A5E;
+            --border: #3D1F0A;
+            --bordo: #5A1520;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-atmosphere {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.15;
+            animation: blobFloat 12s ease-in-out infinite alternate, pulse 8s ease-in-out infinite;
+        }
+        .blob-1 {
+            width: 500px; height: 500px;
+            background: var(--accent);
+            top: -10%; left: -10%;
+        }
+        .blob-2 {
+            width: 400px; height: 400px;
+            background: var(--accent-light);
+            bottom: -5%; right: -5%;
+            animation-delay: -4s, -3s;
+            animation-duration: 15s, 10s;
+        }
+        .blob-3 {
+            width: 300px; height: 300px;
+            background: var(--warm);
+            top: 40%; left: 50%;
+            animation-delay: -8s, -6s;
+            animation-duration: 18s, 12s;
+        }
+        @keyframes blobFloat {
+            0%   { transform: translate(0, 0) scale(1); }
+            33%  { transform: translate(30px, -40px) scale(1.1); }
+            66%  { transform: translate(-20px, 20px) scale(0.95); }
+            100% { transform: translate(10px, -10px) scale(1.05); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.15; }
+            50% { opacity: 0.25; }
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 16px 48px;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        .screen {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+        .screen.active {
+            display: flex;
+            animation: screenIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .screen.leaving {
+            animation: screenOut 0.28s ease-in forwards;
+        }
+        @keyframes screenIn {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes screenOut {
+            from { opacity: 1; transform: translateY(0); }
+            to   { opacity: 0; transform: translateY(-18px); }
+        }
+
+        .logo-square {
+            width: 130px;
+            height: 130px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-square img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .title-main {
+            font-family: 'Bebas Neue', cursive;
+            font-size: clamp(2.4rem, 9vw, 4rem);
+            letter-spacing: 4px;
+            background: linear-gradient(180deg, var(--gold) 0%, var(--accent-light) 50%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 2px 8px rgba(230, 57, 70, 0.3));
+            line-height: 1.05;
+            text-align: center;
+        }
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 300;
+        }
+        .course-label {
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 400;
+        }
+
+        .card-option {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 22px 24px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .card-option::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--accent), var(--accent-light));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .card-option:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(230, 57, 70, 0.3);
+            transform: translateX(6px);
+            box-shadow: 0 4px 24px rgba(230, 57, 70, 0.1);
+        }
+        .card-option:hover::before { opacity: 1; }
+        .card-option:active { transform: translateX(6px) scale(0.985); }
+
+        .card-number {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 2.2rem;
+            color: var(--accent);
+            line-height: 1;
+            opacity: 0.7;
+        }
+        .card-title { font-weight: 700; font-size: 1.15rem; color: var(--text); }
+        .card-desc { font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; font-weight: 300; }
+        .card-icon { font-size: 1.6rem; color: var(--accent-light); opacity: 0.6; }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: transparent;
+            transition: all 0.25s;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .btn-back:hover {
+            color: var(--accent-light);
+            background: rgba(255, 107, 53, 0.06);
+            border-color: rgba(255, 107, 53, 0.15);
+        }
+
+        .level-card {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px 24px;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .level-card:hover {
+            border-color: rgba(230, 57, 70, 0.35);
+            transform: translateX(6px);
+            box-shadow: 0 4px 24px rgba(230, 57, 70, 0.1);
+        }
+        .level-card:active { transform: translateX(6px) scale(0.985); }
+
+        .level-num {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 2.6rem;
+            background: linear-gradient(180deg, var(--warm), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            opacity: 0.3;
+        }
+
+        .badge-easy { background: rgba(76, 175, 80, 0.12); color: #81C784; border: 1px solid rgba(76, 175, 80, 0.2); }
+        .badge-medium { background: rgba(255, 193, 69, 0.12); color: #FFD54F; border: 1px solid rgba(255, 193, 69, 0.2); }
+        .badge-hard { background: rgba(230, 57, 70, 0.12); color: #EF9A9A; border: 1px solid rgba(230, 57, 70, 0.2); }
+        .difficulty-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .divider {
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            margin: 6px 0;
+            border-radius: 2px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .breadcrumb .sep { opacity: 0.4; }
+        .breadcrumb .current { color: var(--accent-light); font-weight: 600; }
+
+        .killer-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(230, 57, 70, 0.1);
+            border: 1px solid rgba(230, 57, 70, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--accent-light);
+            letter-spacing: 0.5px;
+        }
+        .killer-label i {
+            color: var(--accent);
+            font-size: 1rem;
+        }
+
+        .case-image {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: linear-gradient(135deg, #1a0c03 0%, #2a1205 50%, #1a0c03 100%);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .case-image .placeholder-icon {
+            color: var(--text-muted);
+            opacity: 0.2;
+            font-size: 3rem;
+        }
+        .case-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .particles-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .case-info {
+            text-align: center;
+            max-width: 360px;
+        }
+        .case-info h3 {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            color: var(--warm);
+        }
+
+        @media (max-width: 400px) {
+            .logo-square { width: 100px; height: 100px; }
+            .title-main { letter-spacing: 2px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .blob, .screen.active, .screen.leaving, .card-option, .level-card {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-atmosphere" aria-hidden="true">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+    <canvas class="particles-canvas" aria-hidden="true"></canvas>
+
+    <div class="app-container">
+
+        <!-- ========== PANTALLA PRINCIPAL ========== -->
+        <section id="screen-home" class="screen active" role="main">
+            <span class="course-label mb-2">1ºEMS 5 — 2026</span>
+
+            <div class="logo-square" aria-label="Logo de Nadie sale al recreo">
+                <img src="https://z-cdn-media.chatglm.cn/files/09245d72-9aa4-486b-bb5c-c46d4f3d9bf6.png?auth_key=1888868382-5ec77b9b29f641e2ba7e2c6e1ab1cf64-0-6dbbb57d8c5e8e2e5e4f6e4e0d9a5c5c" alt="Logo" />
+            </div>
+
+            <h1 class="title-main mt-5">NADIE SALE<br>AL RECREO</h1>
+            <div class="divider mt-1"></div>
+            <p class="subtitle mt-2">Correccion de respuestas</p>
+
+            <p class="text-center mt-6 mb-8 text-sm leading-relaxed" style="color: var(--text-muted); max-width: 340px;">
+                Resolvé el crimen usando la logica pura. Cada casilla es una pista, cada fila una sospecha. <strong style="color: var(--warm);">Descubrí al asesino.</strong>
+            </p>
+
+            <div class="w-full flex flex-col gap-4">
+                <h2 class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: var(--text-muted);">
+                    <i class="fa-solid fa-map-location-dot mr-2" style="color: var(--accent); opacity:0.6;"></i>Elegi tu escenario
+                </h2>
+
+                <div class="card-option" onclick="navigateTo('screen-levels', 'Polideportivo')" role="button" tabindex="0" aria-label="Seleccionar Polideportivo">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <span class="card-number">01</span>
+                            <div>
+                                <div class="card-title">Polideportivo</div>
+                                <div class="card-desc">Canchas, vestuarios y pasillos oscuros</div>
+                            </div>
+                        </div>
+                        <span class="card-icon"><i class="fa-solid fa-futbol"></i></span>
+                    </div>
+                </div>
+
+                <div class="card-option" onclick="navigateTo('screen-levels', 'Salones de Clase')" role="button" tabindex="0" aria-label="Seleccionar Salones de Clase">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <span class="card-number">02</span>
+                            <div>
+                                <div class="card-title">Salones de Clase</div>
+                                <div class="card-desc">Pizarras, pupitres y secretos entre libros</div>
+                            </div>
+                        </div>
+                        <span class="card-icon"><i class="fa-solid fa-chalkboard-user"></i></span>
+                    </div>
+                </div>
+
+                <div class="card-option" onclick="navigateTo('screen-levels', 'Cantina')" role="button" tabindex="0" aria-label="Seleccionar Cantina">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <span class="card-number">03</span>
+                            <div>
+                                <div class="card-title">Cantina</div>
+                                <div class="card-desc">Mesas, olores y rumores entre platos</div>
+                            </div>
+                        </div>
+                        <span class="card-icon"><i class="fa-solid fa-utensils"></i></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== PANTALLA DE NIVELES ========== -->
+        <section id="screen-levels" class="screen" role="main">
+            <div class="w-full flex items-center gap-3 mb-2">
+                <button class="btn-back" onclick="navigateTo('screen-home')" aria-label="Volver al inicio">
+                    <i class="fa-solid fa-arrow-left"></i> Volver
+                </button>
+            </div>
+
+            <div class="breadcrumb w-full">
+                <span>Nadie sale al recreo</span>
+                <span class="sep"><i class="fa-solid fa-chevron-right" style="font-size:0.55rem;"></i></span>
+                <span class="current" id="breadcrumb-map">Mapa</span>
+            </div>
+
+            <h2 class="font-display text-4xl mt-3 tracking-wide" style="color: var(--warm);" id="map-title">Mapa</h2>
+            <div class="divider mt-1 mb-6"></div>
+
+            <div class="w-full flex flex-col gap-4" id="levels-container"></div>
+        </section>
+
+        <!-- ========== PANTALLA DEL CASO ========== -->
+        <section id="screen-case" class="screen" role="main">
+            <div class="w-full flex items-center gap-3 mb-2">
+                <button class="btn-back" id="btn-back-case" aria-label="Volver a niveles">
+                    <i class="fa-solid fa-arrow-left"></i> Volver
+                </button>
+            </div>
+
+            <div class="breadcrumb w-full">
+                <span>Nadie sale al recreo</span>
+                <span class="sep"><i class="fa-solid fa-chevron-right" style="font-size:0.55rem;"></i></span>
+                <span id="breadcrumb-map-case">Mapa</span>
+                <span class="sep"><i class="fa-solid fa-chevron-right" style="font-size:0.55rem;"></i></span>
+                <span class="current" id="breadcrumb-level-case">Nivel</span>
+            </div>
+
+            <div class="w-full mt-6 flex flex-col items-center gap-6">
+                <div class="case-info">
+                    <span class="difficulty-badge mb-3" id="case-badge">Dificultad</span>
+                    <h3 class="mt-3" id="case-level-name">Nombre del nivel</h3>
+                    <p class="text-sm mt-2 leading-relaxed" style="color: var(--text-muted);" id="case-level-desc">Descripcion</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="case-image">
+                    <!-- REEMPLAZÁ este placeholder con la imagen del caso cuando la subas -->
+                    <!-- <img src="TU_IMAGEN_AQUI.jpg" alt="Escena del crimen" /> -->
+                    <i class="fa-solid fa-skull-crossbones placeholder-icon"></i>
+                </div>
+
+                <div class="killer-label">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    El asesino es:
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        const mapData = {
+            'Polideportivo': [
+                {
+                    name: 'Lockers y candados',
+                    difficulty: 'Facil',
+                    diffClass: 'badge-easy',
+                    desc: 'Un cuerpo entre las perchas. Las huellas llevan a tres sospechosos habituales.'
+                },
+                {
+                    name: 'Carrera al podio',
+                    difficulty: 'Medio',
+                    diffClass: 'badge-medium',
+                    desc: 'Echo de menos en pleno partido. Las contradicciones empiezan a aparecer.'
+                },
+                {
+                    name: 'La copa del mundo',
+                    difficulty: 'Dificil',
+                    diffClass: 'badge-hard',
+                    desc: 'Nadie vio nada, pero todos saben algo. El tablero no perdona errores.'
+                }
+            ],
+            'Salones de Clase': [
+                {
+                    name: 'Examen Final',
+                    difficulty: 'Facil',
+                    diffClass: 'badge-easy',
+                    desc: 'Cayó justo antes de entregar. Las respuestas ocultan algo mas que notas.'
+                },
+                {
+                    name: 'Tarea',
+                    difficulty: 'Medio',
+                    diffClass: 'badge-medium',
+                    desc: 'Un trabajo en grupo donde uno no sobrevivió. Las pistas estan en la libreta.'
+                },
+                {
+                    name: 'Profe suplente',
+                    difficulty: 'Dificil',
+                    diffClass: 'badge-hard',
+                    desc: 'El profe reemplazante encontro el cuerpo. Nada es lo que parece en este salon.'
+                }
+            ],
+            'Cantina': [
+                {
+                    name: 'Cuenta pendiente',
+                    difficulty: 'Facil',
+                    diffClass: 'badge-easy',
+                    desc: 'Dejaron de pagar antes de irse. El mesero sabe mas de lo que dice.'
+                },
+                {
+                    name: 'Menu del dia',
+                    difficulty: 'Medio',
+                    diffClass: 'badge-medium',
+                    desc: 'El plato especial tenia un ingrediente extra. Las versiones no coinciden.'
+                },
+                {
+                    name: 'La mesa sucia',
+                    difficulty: 'Dificil',
+                    diffClass: 'badge-hard',
+                    desc: 'Cuando se apagan las luces, los secretos salen a la superficie. Cero margen de error.'
+                }
+            ]
+        };
+
+        let currentScreen = 'screen-home';
+        let currentMap = '';
+        let currentLevelIndex = 0;
+
+        function navigateTo(targetId, mapName, levelIndex) {
+            if (mapName !== undefined) currentMap = mapName;
+            if (levelIndex !== undefined) currentLevelIndex = levelIndex;
+
+            const current = document.getElementById(currentScreen);
+            const target = document.getElementById(targetId);
+
+            if (targetId === 'screen-levels') {
+                renderLevels(currentMap);
+            } else if (targetId === 'screen-case') {
+                renderCase(currentMap, currentLevelIndex);
+            }
+
+            if (targetId === 'screen-case') {
+                document.getElementById('btn-back-case').onclick = () => navigateTo('screen-levels');
+            }
+
+            current.classList.add('leaving');
+
+            setTimeout(() => {
+                current.classList.remove('active', 'leaving');
+                current.style.display = 'none';
+
+                target.style.display = 'flex';
+                void target.offsetWidth;
+                target.classList.add('active');
+                currentScreen = targetId;
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 260);
+        }
+
+        function renderLevels(mapName) {
+            const container = document.getElementById('levels-container');
+            const title = document.getElementById('map-title');
+            const breadcrumb = document.getElementById('breadcrumb-map');
+
+            title.textContent = mapName.toUpperCase();
+            breadcrumb.textContent = mapName;
+
+            const levels = mapData[mapName] || [];
+            container.innerHTML = '';
+
+            levels.forEach((level, i) => {
+                const card = document.createElement('div');
+                card.className = 'level-card';
+                card.setAttribute('role', 'button');
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('aria-label', `Nivel ${i + 1}: ${level.name}`);
+                card.onclick = () => navigateTo('screen-case', currentMap, i);
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <span class="level-num">${String(i + 1).padStart(2, '0')}</span>
+                            <div>
+                                <div class="flex items-center gap-3 mb-1">
+                                    <span class="font-bold text-base" style="color: var(--text);">${level.name}</span>
+                                    <span class="difficulty-badge ${level.diffClass}">${level.difficulty}</span>
+                                </div>
+                                <div class="text-sm" style="color: var(--text-muted); font-weight: 300;">${level.desc}</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right" style="color: var(--text-muted); opacity: 0.3; font-size: 0.9rem;"></i>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function renderCase(mapName, levelIndex) {
+            const levels = mapData[mapName] || [];
+            const level = levels[levelIndex];
+            if (!level) return;
+
+            document.getElementById('breadcrumb-map-case').textContent = mapName;
+            document.getElementById('breadcrumb-level-case').textContent = level.name;
+            document.getElementById('case-level-name').textContent = level.name;
+            document.getElementById('case-level-desc').textContent = level.desc;
+
+            const badge = document.getElementById('case-badge');
+            badge.textContent = level.difficulty;
+            badge.className = 'difficulty-badge ' + level.diffClass;
+        }
+
+        function showToast(message) {
+            const existing = document.querySelector('.toast-msg');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.className = 'toast-msg';
+            toast.textContent = message;
+            Object.assign(toast.style, {
+                position: 'fixed',
+                bottom: '32px',
+                left: '50%',
+                transform: 'translateX(-50%) translateY(20px)',
+                background: 'var(--bg-card)',
+                color: 'var(--warm)',
+                border: '1px solid var(--border)',
+                padding: '14px 28px',
+                borderRadius: '12px',
+                fontSize: '0.85rem',
+                fontFamily: '"Space Grotesk", sans-serif',
+                fontWeight: '600',
+                zIndex: '999',
+                opacity: '0',
+                transition: 'all 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                whiteSpace: 'nowrap',
+                maxWidth: '90vw',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+            });
+            document.body.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateX(-50%) translateY(0)';
+            });
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(-50%) translateY(20px)';
+                setTimeout(() => toast.remove(), 350);
+            }, 2800);
+        }
+
+        (function initParticles() {
+            const canvas = document.querySelector('.particles-canvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            const PARTICLE_COUNT = 40;
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.max(0.5, Math.random() * 2),
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: (Math.random() - 0.5) * 0.3 - 0.15,
+                    opacity: Math.random() * 0.3 + 0.05,
+                    color: ['#E63946', '#FF6B35', '#F4A261', '#FFC145'][Math.floor(Math.random() * 4)]
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+                    ctx.save();
+                    ctx.globalAlpha = p.opacity;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, Math.max(0.5, p.radius), 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = p.color;
+                    ctx.fill();
+                    ctx.restore();
+                });
+                requestAnimationFrame(animate);
+            }
+
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                animate();
+            }
+        })();
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                const el = document.activeElement;
+                if (el && (el.classList.contains('card-option') || el.classList.contains('level-card'))) {
+                    e.preventDefault();
+                    el.click();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
